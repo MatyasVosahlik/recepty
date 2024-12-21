@@ -1,187 +1,31 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recepty - Poznámky</title>
-    <style>
-        body {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    padding: 20px;
-}
-header {
-    text-align: center;
-    margin-bottom: 40px;
-}
-h1, h2 {
-    color: #333;
-}
-form {
-    background: #fff;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    max-width: 400px;
-    margin: 0 auto;
-}
-label {
-    display: block;
-    margin-bottom: 8px;
-}
-input, textarea {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-button {
-    padding: 10px 20px;
-    background: #333;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-.hidden {
-    display: none;
-}
-.note {
-    background: #fff;
-    margin: 10px 0;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-}
-.error {
-    color: red;
-    margin-top: 10px;
-    text-align: center;
-}
-
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>On-Line Kuchařka | Recepty</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <header>
-        <h1>Recepty - Poznámky</h1>
-    </header>
+    <div id="container">
 
-    <main>
-        <section id="auth">
-            <h2>Přihlášení / Registrace</h2>
-            <form id="loginForm">
-                <label for="username">Uživatelské jméno:</label>
-                <input type="text" id="username" required>
-                <label for="password">Heslo:</label>
-                <input type="password" id="password" required>
-                <button type="submit">Přihlásit se</button>
-            </form>
-            <form id="registerForm">
-                <label for="regUsername">Nové uživatelské jméno:</label>
-                <input type="text" id="regUsername" required>
-                <label for="regPassword">Nové heslo:</label>
-                <input type="password" id="regPassword" required>
-                <button type="submit">Registrovat</button>
-            </form>
+        <div id="list-header">
+            <div id="addNoteDiv" onclick="popup()">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+            <div class="blankDiv"></div>
+            <div class="blankDiv"></div>
+        </div>
+        
+        <div id="list-container">
+            <ul id="notes-list"></ul>
+        </div>
+    </div>
 
-            
-            <div id="loginError" class="error hidden">Nesprávné uživatelské jméno nebo heslo.</div>
-        </section>
-
-        <section id="recipes" class="hidden">
-            <h2>Společné Recepty</h2>
-            <form id="recipeForm">
-                <label for="recipeTitle">Název receptu:</label>
-                <input type="text" id="recipeTitle" required>
-                <label for="recipeDescription">Popis receptu:</label>
-                <textarea id="recipeDescription" required></textarea>
-                <button type="submit">Přidat recept</button>
-            </form>
-            <div id="recipeList"></div>
-            <button id="logout">Odhlásit se</button>
-        </section>
-    </main>
-
-    <script>
-        // Automatické nastavení URL podle prostředí (localhost vs. produkce na Render)
-const apiUrl = window.location.hostname === 'localhost' 
-? "http://localhost:3000/api" 
-: "https://váš-backend.render.com/api";  // Zde nahraďte správnou URL vašeho backendu na Renderu
-
-async function apiRequest(endpoint, method, data) {
-const response = await fetch(`${apiUrl}/${endpoint}`, {
-method: method,
-headers: {
-'Content-Type': 'application/json'
-},
-body: JSON.stringify(data)
-});
-return response.json();
-}
-
-async function registerUser() {
-const username = document.getElementById('regUsername').value;
-const password = document.getElementById('regPassword').value;
-const result = await apiRequest('register', 'POST', { username, password });
-alert(result.message);
-document.getElementById('registerForm').reset();
-}
-
-async function loginUser() {
-const username = document.getElementById('username').value;
-const password = document.getElementById('password').value;
-const result = await apiRequest('login', 'POST', { username, password });
-if (result.success) {
-document.getElementById('auth').classList.add('hidden');
-document.getElementById('recipes').classList.remove('hidden');
-document.getElementById('loginError').classList.add('hidden');
-loadRecipes();
-} else {
-document.getElementById('loginError').classList.remove('hidden');
-}
-}
-
-async function loadRecipes() {
-const recipes = await apiRequest('recipes', 'GET');
-const recipeList = document.getElementById('recipeList');
-recipeList.innerHTML = '';
-recipes.forEach(recipe => {
-const recipeDiv = document.createElement('div');
-recipeDiv.classList.add('note');
-recipeDiv.innerHTML = `<h3>${recipe.title}</h3><p>${recipe.description}</p><p><em>Přidal: ${recipe.author}</em></p>`;
-recipeList.appendChild(recipeDiv);
-});
-}
-
-async function addRecipe() {
-const title = document.getElementById('recipeTitle').value;
-const description = document.getElementById('recipeDescription').value;
-await apiRequest('recipes', 'POST', { title, description });
-loadRecipes();
-document.getElementById('recipeForm').reset();
-}
-
-document.getElementById('registerForm').addEventListener('submit', (e) => {
-e.preventDefault();
-registerUser();
-});
-
-document.getElementById('loginForm').addEventListener('submit', (e) => {
-e.preventDefault();
-loginUser();
-});
-
-document.getElementById('recipeForm').addEventListener('submit', (e) => {
-e.preventDefault();
-addRecipe();
-});
-
-document.getElementById('logout').addEventListener('click', () => {
-document.getElementById('recipes').classList.add('hidden');
-document.getElementById('auth').classList.remove('hidden');
-});
-    </script>
+    <script src="./script.js"></script>
 </body>
 </html>
+
+
 
